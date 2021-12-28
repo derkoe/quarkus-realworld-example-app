@@ -8,7 +8,7 @@ create table users
     image    varchar(511)
 );
 
-create table articles
+CREATE TABLE articles
 (
     id          uuid primary key,
     user_id     uuid,

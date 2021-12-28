@@ -64,9 +64,8 @@
       <artifactId>quarkus-flyway</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.65</version>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -81,6 +80,26 @@
   </dependencies>
   <build>
     <plugins>
+      <!--
+      <plugin>
+        <groupId>io.swagger.codegen.v3</groupId>
+        <artifactId>swagger-codegen-maven-plugin</artifactId>
+        <version>3.0.30</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>src/main/resources/api.yaml</inputSpec>
+              <language>jaxrs-resteasy-eap</language>
+              <apiPackage>realworld.api</apiPackage>
+              <modelPackage>realworld.model</modelPackage>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      -->
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>

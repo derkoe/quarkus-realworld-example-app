@@ -35,11 +35,6 @@
             font-size: 1rem
         }
 
-        .lead {
-            font-weight: 300;
-            font-size: 2rem;
-        }
-
         .banner {
             font-size: 2.7rem;
             margin: 0;
@@ -96,48 +91,36 @@
             padding-left: 0;
         }
 
-        .provided-code {
-            border-left: 0.3rem solid #71aeef;
-            padding-left: 10px;
-        }
-
-        .provided-code h3 {
-            font-weight: 200;
-        }
     </style>
 </head>
 <body>
 
 <div class="banner lead">
-    Your new Cloud-Native application is ready!
+    Quarkus RealWorld Example App
 </div>
 
 <div class="container">
     <div class="left-column">
-        <p class="lead"> Congratulations, you have created a new Quarkus cloud application.</p>
+        <h3>Quarkus codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the <a href="https://github.com/gothinkster/realworld">RealWorld</a> spec and API.</h3>
 
         <h2>What is this page?</h2>
 
-        <p>This page is served by Quarkus. The source is in
-            <code>src/main/resources/META-INF/resources/index.html</code>.</p>
+        <p>This codebase was created to demonstrate a fully fledged fullstack application built with Quarkus including CRUD operations, authentication, routing, pagination, and more.<p>
 
-        <h2>What are your next steps?</h2>
+        <p>We've gone to great lengths to adhere to the Quarkus community styleguides & best practices.</p>
 
-        <p>If not already done, run the application in <em>dev mode</em> using: <code>./mvnw compile quarkus:dev</code>.
-        </p>
+        <p>For more information on how to this works with other frontends/backends, head over to the <a href="https://github.com/gothinkster/realworld">RealWorld</a> repo.</p>
+
+        <h2>How does it work?</h2>
+
+        <p>If not already done, run the application in <em>dev mode</em> using: <code>./mvnw compile quarkus:dev</code>.</p>
+
         <ul>
             <li>Your static assets are located in <code>src/main/resources/META-INF/resources</code>.</li>
             <li>Configure your application in <code>src/main/resources/application.properties</code>.</li>
             <li>Quarkus now ships with a <a href="/q/dev/">Dev UI</a> (available in dev mode only)</li>
             <li>Play with the provided code located in <code>src/main/java</code>:</li>
         </ul>
-                <div class="provided-code">
-            <h3>RESTEasy JAX-RS</h3>
-            <p>Easily start your RESTful Web Services</p>
-            <p><code>@Path: <a href="/hello" class="path-link" target="_blank">/hello</a></code></p>
-            <p><a href="https://quarkus.io/guides/getting-started#the-jax-rs-resources" class="guide-link" target="_blank">Related guide section...</a></p>
-        </div>
-
     </div>
     <div class="right-column">
         <div class="right-section">
