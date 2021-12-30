@@ -1,6 +1,9 @@
 package realworld.users;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,30 +11,25 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
-import java.util.Optional;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User extends PanacheEntityBase {
+@NoArgsConstructor
+@Getter
+@Setter
+public class User {
     @Id
     @GeneratedValue
-    public UUID id;
+    @Setter(AccessLevel.NONE)
+    private UUID id;
     @NotEmpty
-    public String username;
+    private String username;
     @NotEmpty
-    public String password;
+    private String password;
     @Email
     @NotEmpty
-    public String email;
-    public String bio;
-    public String image;
-
-    public static Optional<User> findByUsername(String username) {
-        return find("username", username).singleResultOptional();
-    }
-
-    public static Optional<User> findByEmail(String email) {
-        return find("email", email).singleResultOptional();
-    }
+    private String email;
+    private String bio;
+    private String image;
 }

@@ -1,23 +1,39 @@
 package realworld.articles;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import realworld.users.User;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "articles")
-public class Article extends PanacheEntityBase {
+@NoArgsConstructor
+@Getter
+@Setter
+public class Article {
     @Id
     @GeneratedValue
-    public UUID id;
-    public String slug;
-    public String title;
-    public String description;
-    public String body;
+    private UUID id;
+    private String slug;
+    @ManyToOne
+    private User author;
+    private String title;
+    private String description;
+    private String body;
+    @CreationTimestamp
     @Column(name = "created_at")
-    public LocalDateTime createdAt;
+    private Instant createdAt;
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    public LocalDateTime updatedAt;
+    private Instant updatedAt;
+    @ManyToMany
+    private Set<Tag> tags = new HashSet<>();
 }

@@ -1,11 +1,11 @@
 package realworld.users.web;
 
-import realworld.users.UserWithToken;
+import realworld.users.UserData;
 
 class UserResponse {
-    public final UserWithToken user;
+    public final UserData user;
 
-    public UserResponse(UserWithToken user) {
+    public UserResponse(UserData user) {
         this.user = user;
     }
 }

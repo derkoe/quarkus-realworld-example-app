@@ -1,46 +1,57 @@
 package realworld.articles.web;
 
-import realworld.articles.Article;
+import realworld.articles.ArticleData;
 import realworld.articles.ArticleService;
+import realworld.articles.CreateArticle;
+import realworld.security.UserHelper;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 @Path("/articles")
+@Produces(MediaType.APPLICATION_JSON)
 public class ArticlesResource {
 
     @Inject
-    private ArticleService articleService;
+    ArticleService articleService;
 
     @GET
-    public ArticlesResponse all() {
-        List<Article> articles = Article.listAll();
+    public ArticlesResponse all(@QueryParam("author") String author, @QueryParam("tag") String tag) {
+        List<ArticleData> articles = articleService.search(author, tag);
+        return new ArticlesResponse(articles, articles.size());
+    }
+
+    @GET
+    @Path("/{slug}")
+    public ArticleResponse articleBySlug(@PathParam("slug") String slug) {
+        return new ArticleResponse(articleService.findBySlug(slug));
+    }
+
+    @GET
+    @Path("/feed")
+    public ArticlesResponse feed(@QueryParam("offset") Integer offset, @QueryParam("limit") Integer limit) {
+        limit = limit == null ? 20 : limit;
+        offset = offset == null ? 1 : offset;
+        List<ArticleData> articles = articleService.feed(offset, limit);
         return new ArticlesResponse(articles, articles.size());
     }
 
     @POST
-    public ArticleResponse create(ArticleRequest<CreateArticle> createArticle) {
-        return new ArticleResponse(articleService.create(createArticle.article));
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("User")
+    public ArticleResponse create(ArticleRequest<CreateArticle> createArticle, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.create(createArticle.article, UserHelper.getUserId(sec)));
     }
-}
 
-class ArticlesResponse {
-    public final Iterable<Article> articles;
-    public final Integer articlesCount;
-
-    ArticlesResponse(Iterable<Article> articles, Integer articlesCount) {
-        this.articles = articles;
-        this.articlesCount = articlesCount;
-    }
-}
-
-class ArticleResponse {
-    public final Article article;
-
-    ArticleResponse(Article article) {
-        this.article = article;
+    @PUT
+    @Path("/{slug}")
+    @RolesAllowed("User")
+    public ArticleResponse update(@PathParam("slug") String slug, ArticleRequest<CreateArticle> createArticle, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.update(slug, createArticle.article, UserHelper.getUserId(sec)));
     }
 }
