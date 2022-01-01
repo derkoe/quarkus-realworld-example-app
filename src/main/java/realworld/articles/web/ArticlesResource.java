@@ -28,8 +28,8 @@ public class ArticlesResource {
 
     @GET
     @Path("/{slug}")
-    public ArticleResponse articleBySlug(@PathParam("slug") String slug) {
-        return new ArticleResponse(articleService.findBySlug(slug));
+    public ArticleResponse articleBySlug(@PathParam("slug") String slug, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.findBySlug(slug, UserHelper.getUserId(sec)));
     }
 
     @GET
@@ -53,5 +53,17 @@ public class ArticlesResource {
     @RolesAllowed("User")
     public ArticleResponse update(@PathParam("slug") String slug, ArticleRequest<CreateArticle> createArticle, @Context SecurityContext sec) {
         return new ArticleResponse(articleService.update(slug, createArticle.article, UserHelper.getUserId(sec)));
+    }
+
+    @POST
+    @Path("/{slug}/favorite")
+    public ArticleResponse favor(@PathParam("slug") String slug, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.addFavorite(slug, UserHelper.getUserId(sec)));
+    }
+
+    @DELETE
+    @Path("/{slug}/favorite")
+    public ArticleResponse unfavor(@PathParam("slug") String slug, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.removeFavorite(slug, UserHelper.getUserId(sec)));
     }
 }

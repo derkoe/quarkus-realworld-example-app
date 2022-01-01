@@ -25,6 +25,9 @@ public class ArticleService {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    ArticleFavoriteRepository articleFavoriteRepository;
+
     @Transactional
     public ArticleData create(CreateArticle createArticle, UUID userId) {
         Article article = new Article();
@@ -40,13 +43,16 @@ public class ArticleService {
                     tagRepository.persist(tag);
                     return tag;
                 }))
-                .collect(Collectors.toSet())
-        );
+                .collect(Collectors.toSet()));
         articleRepository.persistAndFlush(article);
         return map(article);
     }
 
     private ArticleData map(Article article) {
+        return mapWithFavorites(article, 0, false);
+    }
+
+    private ArticleData mapWithFavorites(Article article, int favoritesCount, boolean favorited) {
         if (article == null) {
             return null;
         }
@@ -55,8 +61,8 @@ public class ArticleService {
         return ArticleData.builder().id(article.getId().toString()).slug(article.getSlug()).title(article.getTitle())
                 .description(article.getDescription())
                 .body(article.getBody())
-                .favorited(false)
-                .favoritesCount(0)
+                .favorited(favorited)
+                .favoritesCount(favoritesCount)
                 .createdAt(article.getCreatedAt())
                 .updatedAt(article.getUpdatedAt())
                 .tagList(tags)
@@ -85,8 +91,14 @@ public class ArticleService {
         return title.replaceAll("[^a-zA-Z0-9]", "-").toLowerCase();
     }
 
-    public ArticleData findBySlug(String slug) {
-        return map(articleRepository.findBySlug(slug));
+    public ArticleData findBySlug(String slug, UUID userId) {
+        Article article = articleRepository.findBySlug(slug);
+        long favouriteCount = articleFavoriteRepository.count("articleId", article.getId());
+        boolean favorited = false;
+        if (userId != null) {
+            favorited = articleFavoriteRepository.findByArticleIdAndUserId(article.getId(), userId).isPresent();
+        }
+        return mapWithFavorites(article, (int) favouriteCount, favorited);
     }
 
     @Transactional
@@ -104,6 +116,21 @@ public class ArticleService {
         if (changedArticle.body() != null) {
             article.setBody(changedArticle.body());
         }
+        return map(article);
+    }
+
+    @Transactional
+    public ArticleData addFavorite(String slug, UUID userId) {
+        Article article = articleRepository.findBySlug(slug);
+        articleFavoriteRepository.persist(new ArticleFavorite(article.getId(), userId));
+        long favouriteCount = articleFavoriteRepository.count("articleId", article.getId());
+        return mapWithFavorites(article, (int) favouriteCount, true);
+    }
+
+    @Transactional
+    public ArticleData removeFavorite(String slug, UUID userId) {
+        Article article = articleRepository.findBySlug(slug);
+        articleFavoriteRepository.delete(article, userId);
         return map(article);
     }
 }
