@@ -8,6 +8,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
 import java.util.UUID;
 
 @Entity
@@ -18,13 +21,14 @@ public class ArticleFavorite {
     @Id
     @GeneratedValue
     private UUID id;
-    @Column(name = "article_id")
-    private UUID articleId;
+    @ManyToOne
+    @JoinColumn(name = "article_id")
+    private Article article;
     @Column(name = "user_id")
     private UUID userId;
 
-    public ArticleFavorite(UUID articleId, UUID userId) {
-        this.articleId = articleId;
+    public ArticleFavorite(Article article, UUID userId) {
+        this.article = article;
         this.userId = userId;
     }
 }

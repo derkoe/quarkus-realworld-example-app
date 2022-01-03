@@ -2,6 +2,7 @@ package realworld.articles.web;
 
 import realworld.articles.ArticleData;
 import realworld.articles.ArticleService;
+import realworld.articles.CommentData;
 import realworld.articles.CreateArticle;
 import realworld.security.UserHelper;
 
@@ -30,6 +31,13 @@ public class ArticlesResource {
     @Path("/{slug}")
     public ArticleResponse articleBySlug(@PathParam("slug") String slug, @Context SecurityContext sec) {
         return new ArticleResponse(articleService.findBySlug(slug, UserHelper.getUserId(sec)));
+    }
+
+    @DELETE
+    @Path("/{slug}")
+    @RolesAllowed("User")
+    public ArticleResponse delete(@PathParam("slug") String slug, @Context SecurityContext sec) {
+        return new ArticleResponse(articleService.deleteBySlug(slug, UserHelper.getUserId(sec)));
     }
 
     @GET
@@ -65,5 +73,18 @@ public class ArticlesResource {
     @Path("/{slug}/favorite")
     public ArticleResponse unfavor(@PathParam("slug") String slug, @Context SecurityContext sec) {
         return new ArticleResponse(articleService.removeFavorite(slug, UserHelper.getUserId(sec)));
+    }
+
+    @POST
+    @Path("/{slug}/comments")
+    public void comment(@PathParam("slug") String slug, CommentRequest commentRequest, @Context SecurityContext sec) {
+        articleService.comment(slug, commentRequest.comment(), UserHelper.getUserId(sec));
+    }
+
+    @GET
+    @Path("/{slug}/comments")
+    public CommentsResponse comments(@PathParam("slug") String slug) {
+        List<CommentData> comments = articleService.comments(slug);
+        return new CommentsResponse(comments, comments.size());
     }
 }

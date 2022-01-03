@@ -8,6 +8,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.ForbiddenException;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,6 +28,9 @@ public class ArticleService {
 
     @Inject
     ArticleFavoriteRepository articleFavoriteRepository;
+
+    @Inject
+    CommentRepository commentRepository;
 
     @Transactional
     public ArticleData create(CreateArticle createArticle, UUID userId) {
@@ -48,28 +52,6 @@ public class ArticleService {
         return map(article);
     }
 
-    private ArticleData map(Article article) {
-        return mapWithFavorites(article, 0, false);
-    }
-
-    private ArticleData mapWithFavorites(Article article, int favoritesCount, boolean favorited) {
-        if (article == null) {
-            return null;
-        }
-        List<String> tags = article.getTags().stream().map(Tag::getName).sorted().toList();
-        UserData author = UserService.map(article.getAuthor());
-        return ArticleData.builder().id(article.getId().toString()).slug(article.getSlug()).title(article.getTitle())
-                .description(article.getDescription())
-                .body(article.getBody())
-                .favorited(favorited)
-                .favoritesCount(favoritesCount)
-                .createdAt(article.getCreatedAt())
-                .updatedAt(article.getUpdatedAt())
-                .tagList(tags)
-                .author(author)
-                .build();
-    }
-
     @Transactional
     public List<ArticleData> search(String author, String tag) {
         Stream<Article> articles;
@@ -87,18 +69,9 @@ public class ArticleService {
         return articleRepository.findAll().page(offset, limit).stream().map(this::map).toList();
     }
 
-    private String slugify(String title) {
-        return title.replaceAll("[^a-zA-Z0-9]", "-").toLowerCase();
-    }
-
     public ArticleData findBySlug(String slug, UUID userId) {
         Article article = articleRepository.findBySlug(slug);
-        long favouriteCount = articleFavoriteRepository.count("articleId", article.getId());
-        boolean favorited = false;
-        if (userId != null) {
-            favorited = articleFavoriteRepository.findByArticleIdAndUserId(article.getId(), userId).isPresent();
-        }
-        return mapWithFavorites(article, (int) favouriteCount, favorited);
+        return mapWithFavorites(article, userId);
     }
 
     @Transactional
@@ -122,9 +95,8 @@ public class ArticleService {
     @Transactional
     public ArticleData addFavorite(String slug, UUID userId) {
         Article article = articleRepository.findBySlug(slug);
-        articleFavoriteRepository.persist(new ArticleFavorite(article.getId(), userId));
-        long favouriteCount = articleFavoriteRepository.count("articleId", article.getId());
-        return mapWithFavorites(article, (int) favouriteCount, true);
+        articleFavoriteRepository.persist(new ArticleFavorite(article, userId));
+        return mapWithFavorites(articleRepository.findBySlug(slug), userId);
     }
 
     @Transactional
@@ -132,5 +104,59 @@ public class ArticleService {
         Article article = articleRepository.findBySlug(slug);
         articleFavoriteRepository.delete(article, userId);
         return map(article);
+    }
+
+    @Transactional
+    public ArticleData deleteBySlug(String slug, UUID userId) {
+        Article article = articleRepository.findBySlug(slug);
+        if (!article.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException();
+        }
+        articleRepository.delete(article);
+        return map(article);
+    }
+
+    private String slugify(String title) {
+        return title.replaceAll("[^a-zA-Z0-9]", "-").toLowerCase();
+    }
+
+    private ArticleData map(Article article) {
+        return mapWithFavorites(article, null);
+    }
+
+    private ArticleData mapWithFavorites(Article article, UUID userId) {
+        if (article == null) {
+            return null;
+        }
+
+        int favouriteCount = article.getFavorites().size();
+        boolean favorited = false;
+        if (userId != null) {
+            favorited = article.getFavorites().stream().filter(af -> af.getUserId().equals(userId)).count() > 0;
+        }
+
+        List<String> tags = article.getTags().stream().map(Tag::getName).sorted().toList();
+        UserData author = UserService.map(article.getAuthor());
+        return ArticleData.builder().id(article.getId().toString()).slug(article.getSlug()).title(article.getTitle())
+                .description(article.getDescription())
+                .body(article.getBody())
+                .favorited(favorited)
+                .favoritesCount(favouriteCount)
+                .createdAt(article.getCreatedAt())
+                .updatedAt(article.getUpdatedAt())
+                .tagList(tags)
+                .author(author)
+                .build();
+    }
+
+    public void comment(String slug, CommentData comment, UUID userId) {
+        Article article = articleRepository.findBySlug(slug);
+        commentRepository.persist(new Comment(comment.body(), userId, article.getId()));
+    }
+
+    public List<CommentData> comments(String slug) {
+        Article article = articleRepository.findBySlug(slug);
+        return commentRepository.list("article_id", article.getId()).stream().map(c -> new CommentData(c.getBody()))
+                .toList();
     }
 }

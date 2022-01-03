@@ -8,6 +8,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import realworld.users.User;
 
 import javax.persistence.*;
+
+import static javax.persistence.CascadeType.ALL;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,4 +39,6 @@ public class Article {
     private Instant updatedAt;
     @ManyToMany
     private Set<Tag> tags = new HashSet<>();
+    @OneToMany(cascade = ALL,  mappedBy = "article")
+    private Set<ArticleFavorite> favorites = new HashSet<>();
 }

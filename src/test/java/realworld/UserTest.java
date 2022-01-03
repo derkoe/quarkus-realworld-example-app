@@ -13,7 +13,7 @@ public class UserTest {
 
     @Test
     public void testUserRegistration() {
-        UserRequest request = new UserRequest();
+        UserRequest<UserRegistration> request = new UserRequest<>();
         UserRegistration registration = new UserRegistration();
         registration.username = "test";
         registration.email = "test@example.com";
