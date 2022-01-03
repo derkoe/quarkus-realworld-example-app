@@ -13,6 +13,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Map;
 
 @Path("/articles")
 @Produces(MediaType.APPLICATION_JSON)
@@ -65,20 +66,23 @@ public class ArticlesResource {
 
     @POST
     @Path("/{slug}/favorite")
+    @RolesAllowed("User")
     public ArticleResponse favor(@PathParam("slug") String slug, @Context SecurityContext sec) {
         return new ArticleResponse(articleService.addFavorite(slug, UserHelper.getUserId(sec)));
     }
 
     @DELETE
     @Path("/{slug}/favorite")
+    @RolesAllowed("User")
     public ArticleResponse unfavor(@PathParam("slug") String slug, @Context SecurityContext sec) {
         return new ArticleResponse(articleService.removeFavorite(slug, UserHelper.getUserId(sec)));
     }
 
     @POST
     @Path("/{slug}/comments")
-    public void comment(@PathParam("slug") String slug, CommentRequest commentRequest, @Context SecurityContext sec) {
-        articleService.comment(slug, commentRequest.comment(), UserHelper.getUserId(sec));
+    @RolesAllowed("User")
+    public Map<String, CommentData> comment(@PathParam("slug") String slug, CommentRequest commentRequest, @Context SecurityContext sec) {
+        return Map.of("comment", articleService.comment(slug, commentRequest.comment(), UserHelper.getUserId(sec)));
     }
 
     @GET

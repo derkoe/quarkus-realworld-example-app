@@ -129,7 +129,7 @@ public class ArticleService {
             return null;
         }
 
-        int favouriteCount = article.getFavorites().size();
+        int favoriteCount = article.getFavorites().size();
         boolean favorited = false;
         if (userId != null) {
             favorited = article.getFavorites().stream().filter(af -> af.getUserId().equals(userId)).count() > 0;
@@ -141,22 +141,27 @@ public class ArticleService {
                 .description(article.getDescription())
                 .body(article.getBody())
                 .favorited(favorited)
-                .favoritesCount(favouriteCount)
+                .favoritesCount(favoriteCount)
                 .createdAt(article.getCreatedAt())
                 .updatedAt(article.getUpdatedAt())
                 .tagList(tags)
-                .author(author)
+                .author(author.username())
                 .build();
     }
 
-    public void comment(String slug, CommentData comment, UUID userId) {
+    @Transactional
+    public CommentData comment(String slug, CommentData comment, UUID userId) {
         Article article = articleRepository.findBySlug(slug);
-        commentRepository.persist(new Comment(comment.body(), userId, article.getId()));
+        Comment c = new Comment(comment.body(), userId, article.getId());
+        commentRepository.persistAndFlush(c);
+        return new CommentData(c.getId(), c.getBody(), c.getCreatedAt(), c.getUpdatedAt(), c.getUserId().toString());
     }
 
     public List<CommentData> comments(String slug) {
         Article article = articleRepository.findBySlug(slug);
-        return commentRepository.list("article_id", article.getId()).stream().map(c -> new CommentData(c.getBody()))
-                .toList();
+        return commentRepository.list("articleId", article.getId())
+            .stream()
+            .map(c -> new CommentData(c.getId(), c.getBody(), c.getCreatedAt(), c.getUpdatedAt(), c.getUserId().toString()))
+            .toList();
     }
 }

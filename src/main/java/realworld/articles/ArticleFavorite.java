@@ -10,10 +10,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import java.util.UUID;
 
 @Entity
+@Table(name = "articles_favorites")
 @NoArgsConstructor
 @Getter
 @Setter

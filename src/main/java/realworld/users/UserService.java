@@ -1,17 +1,18 @@
 package realworld.users;
 
-import io.quarkus.security.AuthenticationFailedException;
-import io.smallrye.jwt.build.Jwt;
-import realworld.users.web.UserLogin;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import io.quarkus.security.AuthenticationFailedException;
+import io.smallrye.jwt.build.Jwt;
+import realworld.users.web.UserLogin;
 
 @ApplicationScoped
 public class UserService {
@@ -61,6 +62,31 @@ public class UserService {
         return user.map(UserService::map);
     }
 
+    public Optional<ProfileData> getUserProfile(UUID userId, String username) {
+        Optional<User> user = userRepository.find("username", username).firstResultOptional();
+        return user.map(u -> mapProfile(u, userId));
+    }
+
+    @Transactional
+    public ProfileData addFollower(UUID userId, String username) {
+        User follower = userRepository.findById(userId);
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.map(u -> {
+            u.getFollowers().add(follower);
+            return mapProfile(user.get(), userId);
+        }).orElse(null);
+    }
+
+    @Transactional
+    public ProfileData removeFollower(UUID userId, String username) {
+        User follower = userRepository.findById(userId);
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.map(u -> {
+            u.getFollowers().remove(follower);
+            return mapProfile(user.get(), userId);
+        }).orElse(null);
+    }
+
     public static UserData map(User user) {
         String token = Jwt.issuer("https://quarkus-realworld.derkoe.dev")
                 .subject(user.getId().toString())
@@ -76,6 +102,15 @@ public class UserService {
                 .bio(user.getBio())
                 .image(user.getImage())
                 .token(token)
+                .build();
+    }
+
+    public static ProfileData mapProfile(User user, UUID userId) {
+        return ProfileData.builder()
+                .username(user.getUsername())
+                .bio(user.getBio())
+                .image(user.getImage())
+                .following(user.getFollowers().stream().anyMatch(u -> u.getId().equals(userId)))
                 .build();
     }
 }

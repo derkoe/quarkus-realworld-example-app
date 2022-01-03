@@ -1,4 +1,7 @@
 package realworld.articles;
 
-public record CommentData(String body) {
+import java.time.Instant;
+import java.util.UUID;
+
+public record CommentData(UUID id, String body, Instant createdAt, Instant updatedAt, String author) {
 }
